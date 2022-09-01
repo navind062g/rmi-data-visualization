@@ -1,5 +1,6 @@
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
-import { Chart } from 'chart.js';
+import { Chart, registerables } from 'chart.js';
+import { ChartDatasetModel } from './chartdataset.model';
 
 @Component({
   selector: 'app-root',
@@ -9,34 +10,10 @@ import { Chart } from 'chart.js';
 export class AppComponent implements AfterViewInit {
   title = 'rmi-data-visualization';
   @ViewChild('lineChartCanvas') lineChartCanvas: ElementRef | undefined;
+  @ViewChild('canvasDiv') canvasDiv: ElementRef | undefined;
 
   myChart: Chart;
-  chartDatasets = [
-    {
-      data: Array(25).fill(0),
-      label: 'Load',
-      tension: 0.5,
-      stepped: "after"
-    }
-  ];
-
-  analogChartDatasets =  [
-    {
-      data: Array(25).fill(0),
-      label: 'Load',
-      tension: 0.5,
-      stepped: "after"
-    }
-  ];
-
-  digitalChartDatasets = [
-    {
-      data: Array(25).fill(0),
-      label: 'Load',
-      tension: 0,
-      stepped: "after"
-    }
-  ];
+  chartDatasets: ChartDatasetModel[] = [];
 
   chartLabels = [...Array(25).keys()];
   chartData = {};
@@ -72,9 +49,12 @@ export class AppComponent implements AfterViewInit {
   loadAtStart = '';
   timeAtStartOfLoad = '';
   timeAtEndOfLoad = '';
-  curveType = '';
+  curveType = 'Analog';
 
-  constructor() {}
+  constructor() {
+    Chart.register(...registerables);
+    this.chartDatasets.push(new ChartDatasetModel());
+  }
 
   ngAfterViewInit(): void {}
 
@@ -93,13 +73,6 @@ export class AppComponent implements AfterViewInit {
   }
 
   updateDataWithInitialLoad() {
-    if(this.curveType === 'digital') 
-    {
-      this.chartDatasets = this.digitalChartDatasets;
-    }
-    else {
-      this.chartDatasets = this.analogChartDatasets;
-    }
     this.chartDatasets[0].data = this.chartDatasets[0].data.map((num, index) => {
       if(index < Number(this.timeAtStartOfLoad) || index > Number(this.timeAtEndOfLoad)) {
         return Number(this.baseLoad);
@@ -109,12 +82,18 @@ export class AppComponent implements AfterViewInit {
   }
 
   updateChartForCurveType() {
-    if(this.curveType === 'analog') {
+    if(this.curveType === 'analog'|| this.curveType === 'analog2') {
       this.chartDatasets[0].tension = 0.5;
+      this.chartDatasets[0].hasOwnProperty('stepped') 
+      {
+        delete this.chartDatasets[0].stepped;
+      }
     }
     else {
       this.chartDatasets[0].tension = 0;
+      this.chartDatasets[0].stepped = "after";
     }
+    this.chartOptions.plugins.title.text = this.curveType.charAt(0).toUpperCase()+this.curveType.slice(1)+' Load Curve';
   }
 
   updateHighestPointOfLoad() {
@@ -126,25 +105,23 @@ export class AppComponent implements AfterViewInit {
     {
       this.chartDatasets[0].data[highestPointTime] = highestPointLoad;
     }
+
+    if(this.curveType === 'analog2' && Number(this.timeAtLowestPointOfLoad) >= 0) {
+      this.chartDatasets[0].data[Number(this.timeAtLowestPointOfLoad)] = Number(this.lowestPointOfLoad);
+    }
   }
 
   onClickGenerateChart() {
-    
+
     this.updateDataWithInitialLoad();
-    this.updateHighestPointOfLoad();
-    
-    //this.chartDatasets[0].data[Number(this.timeAtLowestPointOfLoad)] = Number(this.lowestPointOfLoad);
-    
+    this.updateHighestPointOfLoad();    
     this.updateChartForCurveType();
-    console.log(this.chartOptions);
-    this.myChart = new Chart(this.lineChartCanvas?.nativeElement, {
-      type: 'line',
-      data: {
-        labels: this.chartLabels,
-        datasets: this.chartDatasets
-      },
-      options: this.chartOptions
-  });
+
+    if(this.myChart != null) {
+      this.myChart.destroy();
+    }
+
+    this.myChart = new Chart(this.lineChartCanvas?.nativeElement, this.createChartConfig());
 }
 
   onClickGenerateDefaultChart() {
@@ -158,5 +135,30 @@ export class AppComponent implements AfterViewInit {
     this.timeAtEndOfLoad = '17';
 
     this.onClickGenerateChart();
+  }
+
+  createChartConfig(): any {
+    return {
+      type: 'line',
+      data: {
+        labels: this.chartLabels,
+        datasets: this.chartDatasets
+      },
+      options: this.chartOptions
+    };
+  }
+
+  onReset() {
+    this.myChart.destroy();
+
+    this.highestPointOfLoad = '';
+    this.timeAthighestPointOfLoad = '';
+    this.lowestPointOfLoad = '';
+    this.timeAtLowestPointOfLoad = '';
+    this.baseLoad = '';
+    this.loadAtStart = '';
+    this.timeAtStartOfLoad = '';
+    this.timeAtEndOfLoad = '';
+    this.curveType = 'Analog';
   }
 }

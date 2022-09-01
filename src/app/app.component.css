@@ -1,0 +1,16 @@
+.root {
+    background-color: beige;
+}
+
+.form-row {
+    width: 80%;
+}
+
+.input-group {
+    border: 1px;
+    border-color: black;
+    border-style: dashed;
+    width: 50%;
+    margin: 10px;
+}
+

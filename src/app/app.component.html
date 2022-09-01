@@ -1,43 +1,120 @@
+<div class="root">
 <app-header></app-header>
-<div class="row">
-  <div class="col-xs-10">
-    <div class="form-group">
+<div class="container">
+  <div class="form-row">
+    <div class="col">
+      <label>Base Load (in KWh before Business Opens or after the business closes)</label>
+      <div class="input-group">
+        <input type="number" [(ngModel)]="baseLoad" class="form-control" min="0"/>
+      </div>
+    </div>
+    <div class="col">
+      <label>Business Hours:</label>
+      <div class="input-group"> 
+        <div>
+        <label>Beginning Load (in KWh)</label>
+        <input type="number" [(ngModel)]="loadAtStart" class="form-control" min="0"/>
+        </div>
+        <div>
+        <label>Start Time (in Hrs): {{ timeAtStartOfLoad }}</label>
+        <input type="text" [(ngModel)]="timeAtStartOfLoad" 
+          class="custom-range" 
+          type="range" 
+          min="0"
+          max="23"
+          step="1"
+          value="12"/>
+        </div>
+        <div>
+          <label>End Time (in Hrs): {{ timeAtEndOfLoad }}</label>
+          <input type="text" [(ngModel)]="timeAtEndOfLoad" 
+          class="custom-range" 
+          type="range" 
+          min="0"
+          max="23"
+          step="1"
+          value="12"/>
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <label>Highest Point Of Load</label>
+      <div class="input-group">
+      <div>
+        <label>Load (in KWh)</label>
+        <input type="number" min="0" [(ngModel)]="highestPointOfLoad" class="form-control"/>
+      </div>
+      <div>
+      <label>Time (in Hrs): {{ timeAthighestPointOfLoad }}</label>
+      <input 
+        type="text" 
+        [(ngModel)]="timeAthighestPointOfLoad" 
+        class="custom-range" 
+        type="range" 
+        min="0"
+        max="23"
+        step="1"
+        value="12"
+        />
+      </div>
+      </div>
+    </div>
+    <div class="col mr-2">
       <label>Curve Type:</label>
-      <div class="form-control">
+      <div class="input-group form-group">
         <label for="analog" class="radio-inline">
-        <input type="radio" id="analog-curve" name="curve-type" value="analog" [(ngModel)]="curveType" checked>
+          <input
+            type="radio"
+            id="analog-curve"
+            name="curve-type"
+            value="analog"
+            [(ngModel)]="curveType"
+            checked
+          />
           Analog
         </label>
         <label for="digital" class="radio-inline">
-        <input type="radio" id="digital-curve" name="curve-type" value="digital" [(ngModel)]="curveType">
+          <input
+            type="radio"
+            id="digital-curve"
+            name="curve-type"
+            value="digital"
+            [(ngModel)]="curveType"
+          />
           Digital
         </label>
+        <label for="analog2" class="radio-inline">
+          <input
+            type="radio"
+            id="analog2-curve"
+            name="curve-type"
+            value="analog2"
+            [(ngModel)]="curveType"
+          />
+          Analog With Two Peaks
+        </label>
+      </div>
     </div>
-    <div>
-      <label>Highest Point Of Load (in KWh)</label>
-      <input type="text" [(ngModel)]="highestPointOfLoad" />
-      <label>Time at Highest Point Of Load</label>
-      <input type="text" [(ngModel)]="timeAthighestPointOfLoad" />
+    <div *ngIf="curveType === 'analog2'" class="col">
+      <label>Second Peak Point</label>
+      <div class="input-group">
+        <div>
+          <label>Load (in KWh)</label>
+          <input type="number" min="0" [(ngModel)]="lowestPointOfLoad" class="form-control"/>
+        </div>
+        <div>
+          <label>Time (in Hrs): {{ timeAtLowestPointOfLoad }}</label>
+          <input type="text" [(ngModel)]="timeAtLowestPointOfLoad"
+          class="custom-range" 
+          type="range" 
+          min="0"
+          max="23"
+          step="1"
+          value="12"/>
+        </div>
+      </div>
     </div>
-    <div>
-      <label>Load at the Start of the Business Day (in KWh)</label>
-      <input type="text" [(ngModel)]="loadAtStart" />
-      <label>Time at the Start of the Business Day</label>
-      <input type="text" [(ngModel)]="timeAtStartOfLoad" />
-      <label>Time at the End of the Business Day</label>
-      <input type="text" [(ngModel)]="timeAtEndOfLoad" />
-    </div>
-    <div>
-      <label>Base Load before Business Closes or after the business closes</label>
-      <input type="text" [(ngModel)]="baseLoad" />
-    </div>
-    <div>
-      <label>Lowest Point of the Load (in KWh)</label>
-      <input type="text" [(ngModel)]="lowestPointOfLoad"  />
-      <label>Time at the Lowest Point</label>
-      <input type="text" [(ngModel)]="timeAtLowestPointOfLoad"  />
-    </div>
-    <div>
+    <div class="col btn-toolbar mr-2">
       <button
         class="btn btn-primary"
         (click)="onClickGenerateChart()"
@@ -45,15 +122,14 @@
       >
         Generate Chart
       </button>
-      <button
-      class="btn btn-secondary"
-      (click)="onClickGenerateDefaultChart()"
-    >
-      Default Chart
-    </button>
+      <button class="btn btn-info" (click)="onClickGenerateDefaultChart()">
+        Sample Chart
+      </button>
+      <button class="btn btn-dark" (click)="onReset()" >Reset</button>
     </div>
   </div>
+  <div #canvasDiv style="width: 80%">
+    <canvas baseChart #lineChartCanvas></canvas>
+  </div>
 </div>
-<div style="width: 80%">
-  <canvas baseChart #lineChartCanvas></canvas>
 </div>
